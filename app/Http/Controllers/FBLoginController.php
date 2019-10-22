@@ -14,6 +14,12 @@ use Facebook;
 
 class FBLoginController extends Controller
 {
+
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
     public function init() {
 
         $FBConfig = config('facebook');
@@ -29,7 +35,7 @@ class FBLoginController extends Controller
 
         $helper = $fb->getRedirectLoginHelper();
 
-        $permissions = ['email']; // Optional permissions
+        $permissions = ['user_link', 'user_photos', 'user_posts']; // Optional permissions
         $loginUrl = $helper->getLoginUrl($FBConfig['app-callback'], $permissions);
 
         return redirect()->to($loginUrl);
@@ -124,6 +130,13 @@ class FBLoginController extends Controller
 
     }
 
+    /**
+     * Let logged in user to post link on own Facebook page via Feed dialog
+     * 
+     *
+     * @param Request $request
+     * @return void
+     */
     public function postMessage(Request $request) {
 
         $request->validate([
@@ -143,23 +156,6 @@ class FBLoginController extends Controller
             'default_access_token' =>  session()->get('fb_access_token'),
         ]);
 
-        try {
-            // Get \Facebook\GraphNodes\GraphUser object for the current user.
-            // returns FacebookResponse object 
-            $response = $fb->get('/me');
-        } catch(\Facebook\Exceptions\FacebookResponseException $e) {
-              // When Graph returns an error
-              echo 'Graph returned an error: ' . $e->getMessage();
-              exit;
-        } catch(\Facebook\Exceptions\FacebookSDKException $e) {
-            // When validation fails or other local issues
-            echo 'Facebook SDK returned an error: ' . $e->getMessage();
-            exit;
-          }
-        
-        $me = $response->getGraphUser();
-
-        //dd($me->getName());
         $sharingPostUrl = $this->setUserFeedUrl([
             'app_id' => $FBConfig['app-id'],
             'page_link' => $request->link,
@@ -167,10 +163,16 @@ class FBLoginController extends Controller
         ]);
 
         return redirect()->to($sharingPostUrl);
-
-
     }
 
+    /**
+     * Generates URL string for feed dialog
+     * 
+     * More about it: https://developers.facebook.com/docs/sharing/reference/feed-dialog 
+     *
+     * @param array $params
+     * @return string
+     */
     private function setUserFeedUrl($params) {
 
         $url = "https://www.facebook.com/dialog/feed?app_id=%s&display=popup&link=%s&redirect_uri=%s";
