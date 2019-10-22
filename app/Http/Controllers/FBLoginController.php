@@ -16,7 +16,7 @@ class FBLoginController extends Controller
         $fb = new Facebook\Facebook([
         'app_id' => $FBConfig['app-id'], // Replace {app-id} with your app id
         'app_secret' => $FBConfig['app-secret'],
-        'default_graph_version' => 'v3.2',
+        'default_graph_version' => 'v4.0',
         ]);
 
         $helper = $fb->getRedirectLoginHelper();
@@ -35,7 +35,7 @@ class FBLoginController extends Controller
         $fb = new Facebook\Facebook([
             'app_id' => $FBConfig['app-id'], // Replace {app-id} with your app id
             'app_secret' => $FBConfig['app-secret'],
-            'default_graph_version' => 'v3.2',
+            'default_graph_version' => 'v4.0',
         ]);
 
         $helper = $fb->getRedirectLoginHelper();
