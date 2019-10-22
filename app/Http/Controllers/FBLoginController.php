@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
+use App\Http\Utils\FBPersistentDataHandler;
+
 use Facebook;
 
 class FBLoginController extends Controller
@@ -10,13 +13,14 @@ class FBLoginController extends Controller
     public function init() {
 
         $FBConfig = config('facebook');
-        
-        session_start();
 
         $fb = new Facebook\Facebook([
         'app_id' => $FBConfig['app-id'], // Replace {app-id} with your app id
         'app_secret' => $FBConfig['app-secret'],
         'default_graph_version' => 'v4.0',
+        // following parameter required in order to fix issue with session/CSRF
+        // Error message - Cross-site request forgery validation failed. Required param "state" missing from persistent data.
+        'persistent_data_handler' => new FBPersistentDataHandler(),
         ]);
 
         $helper = $fb->getRedirectLoginHelper();
@@ -31,11 +35,13 @@ class FBLoginController extends Controller
 
         $FBConfig = config('facebook');
 
-        session_start();
         $fb = new Facebook\Facebook([
             'app_id' => $FBConfig['app-id'], // Replace {app-id} with your app id
             'app_secret' => $FBConfig['app-secret'],
             'default_graph_version' => 'v4.0',
+             // following parameter required in order to fix issue with session/CSRF
+            // Error message - Cross-site request forgery validation failed. Required param "state" missing from persistent data.
+            'persistent_data_handler' => new FBPersistentDataHandler(),
         ]);
 
         $helper = $fb->getRedirectLoginHelper();
