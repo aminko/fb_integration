@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use App\Http\Utils\FBPersistentDataHandler;
 
+use Illuminate\Support\Facades\Redirect;
+use App\User;
+use Auth;
+
 use Facebook;
 
 class FBLoginController extends Controller
@@ -28,7 +32,7 @@ class FBLoginController extends Controller
         $permissions = ['email']; // Optional permissions
         $loginUrl = $helper->getLoginUrl($FBConfig['app-callback'], $permissions);
 
-        echo '<a href="' . htmlspecialchars($loginUrl) . '">Log in with Facebook!</a>';
+        return redirect()->to($loginUrl);
     }
 
     public function login() {
@@ -73,16 +77,16 @@ class FBLoginController extends Controller
         }
 
         // Logged in
-        echo '<h3>Access Token</h3>';
-        var_dump($accessToken->getValue());
+       /*  echo '<h3>Access Token</h3>';
+        var_dump($accessToken->getValue()); */
 
         // The OAuth 2.0 client handler helps us manage access tokens
         $oAuth2Client = $fb->getOAuth2Client();
 
         // Get the access token metadata from /debug_token
         $tokenMetadata = $oAuth2Client->debugToken($accessToken);
-        echo '<h3>Metadata</h3>';
-        var_dump($tokenMetadata);
+       /*  echo '<h3>Metadata</h3>';
+        var_dump($tokenMetadata); */
 
         // Validation (these will throw FacebookSDKException's when they fail)
         $tokenMetadata->validateAppId($FBConfig['app-id']); // Replace {app-id} with your app id
@@ -99,13 +103,20 @@ class FBLoginController extends Controller
             exit;
         }
 
-        echo '<h3>Long-lived</h3>';
-        var_dump($accessToken->getValue());
+        // echo '<h3>Long-lived</h3>';
+        //var_dump($accessToken->getValue());
         }
-        dd($accessToken);
-       // $_SESSION['fb_access_token'] = (string) $accessToken;
-
+        
+        // remember action token
+        Session::put('fb_access_token', (string) $accessToken);
         // User is logged in with a long-lived access token.
         // You can redirect them to a members-only page.
+        
+          
+        // Login user and display main page
+        $user = User::findOrFail(1);
+        Auth::login($user);
+
+        return redirect()->route('home');
     }
 }
