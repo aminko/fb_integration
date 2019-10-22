@@ -15,6 +15,24 @@
                     @endif
 
                     You are logged in!
+                    <hr>
+                    <p>Type url you want to share:</p>
+                    
+                    <form method="POST" class="form-inline" action="{{ route('fb-post-message') }}">
+                        @csrf
+                        <div class="form-group mx-sm-3 mb-2">
+                            <input type="text" name="link" class="form-control @error('link') is-invalid @enderror" id="link" placeholder="Url">
+                            @error('link')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">Share</button>
+                        
+
+                        
+                    </form>
                 </div>
             </div>
         </div>

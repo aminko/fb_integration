@@ -77,16 +77,12 @@ class FBLoginController extends Controller
         }
 
         // Logged in
-       /*  echo '<h3>Access Token</h3>';
-        var_dump($accessToken->getValue()); */
 
         // The OAuth 2.0 client handler helps us manage access tokens
         $oAuth2Client = $fb->getOAuth2Client();
 
         // Get the access token metadata from /debug_token
         $tokenMetadata = $oAuth2Client->debugToken($accessToken);
-       /*  echo '<h3>Metadata</h3>';
-        var_dump($tokenMetadata); */
 
         // Validation (these will throw FacebookSDKException's when they fail)
         $tokenMetadata->validateAppId($FBConfig['app-id']); // Replace {app-id} with your app id
@@ -95,23 +91,19 @@ class FBLoginController extends Controller
         $tokenMetadata->validateExpiration();
 
         if (! $accessToken->isLongLived()) {
-        // Exchanges a short-lived access token for a long-lived one
-        try {
-            $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
-        } catch (Facebook\Exceptions\FacebookSDKException $e) {
-            echo "<p>Error getting long-lived access token: " . $e->getMessage() . "</p>\n\n";
-            exit;
-        }
-
-        // echo '<h3>Long-lived</h3>';
-        //var_dump($accessToken->getValue());
+            // Exchanges a short-lived access token for a long-lived one
+            try {
+                $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
+            } catch (Facebook\Exceptions\FacebookSDKException $e) {
+                echo "<p>Error getting long-lived access token: " . $e->getMessage() . "</p>\n\n";
+                exit;
+            }
         }
         
         // remember action token
         Session::put('fb_access_token', (string) $accessToken);
         // User is logged in with a long-lived access token.
         // You can redirect them to a members-only page.
-        
           
         // Login user and display main page
         $user = User::findOrFail(1);
@@ -119,4 +111,71 @@ class FBLoginController extends Controller
 
         return redirect()->route('home');
     }
+
+    // not possible?
+    /**
+     * Change profile image
+     * 
+     * source: https://developers.facebook.com/docs/graph-api/reference/photo
+     *
+     * @return void
+     */
+    public function postImage() {
+
+    }
+
+    public function postMessage(Request $request) {
+
+        $request->validate([
+            'link' => 'required',
+        ]);
+
+        
+        $FBConfig = config('facebook');
+
+        $fb = new Facebook\Facebook([
+            'app_id' => $FBConfig['app-id'], // Replace {app-id} with your app id
+            'app_secret' => $FBConfig['app-secret'],
+            'default_graph_version' => 'v4.0',
+            // following parameter required in order to fix issue with session/CSRF
+            // Error message - Cross-site request forgery validation failed. Required param "state" missing from persistent data.
+            'persistent_data_handler' => new FBPersistentDataHandler(),
+            'default_access_token' =>  session()->get('fb_access_token'),
+        ]);
+
+        try {
+            // Get \Facebook\GraphNodes\GraphUser object for the current user.
+            // returns FacebookResponse object 
+            $response = $fb->get('/me');
+        } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+              // When Graph returns an error
+              echo 'Graph returned an error: ' . $e->getMessage();
+              exit;
+        } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+            // When validation fails or other local issues
+            echo 'Facebook SDK returned an error: ' . $e->getMessage();
+            exit;
+          }
+        
+        $me = $response->getGraphUser();
+
+        //dd($me->getName());
+        $sharingPostUrl = $this->setUserFeedUrl([
+            'app_id' => $FBConfig['app-id'],
+            'page_link' => $request->link,
+            'redirect_uri' => route('home')
+        ]);
+
+        return redirect()->to($sharingPostUrl);
+
+
+    }
+
+    private function setUserFeedUrl($params) {
+
+        $url = "https://www.facebook.com/dialog/feed?app_id=%s&display=popup&link=%s&redirect_uri=%s";
+        
+        return sprintf($url, $params['app_id'], $params['page_link'], $params['redirect_uri']);
+    }
+
 }

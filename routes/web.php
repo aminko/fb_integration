@@ -21,3 +21,4 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('/fb-login', 'FBLoginController@init')->name('fb-login');
 Route::get('/fb-callback', 'FBLoginController@login');
+Route::post('/fb-post-message','FBLoginController@postMessage')->name('fb-post-message');
