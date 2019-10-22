@@ -6,7 +6,7 @@ Callback should be also registered on **App dashboard** (https://developers.face
 
 **Products** > **Facebook Login** > **Settings**
 
-under the Client OAuth Settings and entering full path (i.e. https://localhost:/fb-callback)
+under the Client OAuth Settings and entering full path (i.e. https://localhost/fb-callback)
 
 ###User links
 According to documentation *publish_actions* is needed in order to post links. Unfortunately *publish_actions* permission is deprecated since August 1, 2018. No further apps will be approved to use *publish_actions* via app review. 

@@ -16,7 +16,12 @@ class FBLoginController extends Controller
 {
 
     /**
-     * Undocumented function
+     * Initialize Oauth login
+     * 
+     * User is redirected to Facebook login page where he can login
+     * When login action is successful user is redirected to URL provided in callback
+     * 
+     *  
      *
      * @return void
      */
@@ -41,6 +46,12 @@ class FBLoginController extends Controller
         return redirect()->to($loginUrl);
     }
 
+    /**
+     * Authenticate user
+     * AccessToken is placed to session store for future [re]use 
+     *
+     * @return void
+     */
     public function login() {
 
         $FBConfig = config('facebook');
@@ -106,7 +117,7 @@ class FBLoginController extends Controller
             }
         }
         
-        // remember action token
+        // remember access token
         Session::put('fb_access_token', (string) $accessToken);
         // User is logged in with a long-lived access token.
         // You can redirect them to a members-only page.
